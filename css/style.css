@@ -1,0 +1,62 @@
+body { 
+    font-family: 'Segoe UI', Arial, sans-serif; 
+    text-align: center; 
+    background-color: #f4f7f6; 
+    margin: 0; 
+    padding: 20px; 
+}
+
+.main-title { color: #2c3e50; margin-bottom: 5px; font-weight: 800; }
+.subtitle { color: #7f8c8d; font-size: 15px; margin-bottom: 30px; }
+
+/* Structure globale du Dashboard */
+.dashboard-container { 
+    display: flex; justify-content: center; align-items: flex-start; 
+    gap: 40px; max-width: 1300px; margin: 0 auto; 
+}
+
+/* Conteneur Graphique (Design plus doux) */
+#chart-container {
+    background: #ffffff; padding: 20px; border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+#chart { position: relative; display: inline-block; }
+
+/* Panneau latéral avancé */
+#sidebar { 
+    width: 380px; background: #ffffff; border: none; border-radius: 12px; 
+    padding: 25px; text-align: left; box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+.sidebar-title { 
+    font-size: 18px; color: #2c3e50; border-bottom: 3px solid #4CAF50; 
+    padding-bottom: 12px; margin-bottom: 25px; font-weight: 800; 
+    text-transform: uppercase; letter-spacing: 1px;
+}
+.sidebar-placeholder { color: #95a5a6; font-size: 14px; font-style: italic; text-align: center; margin-top: 50px; }
+
+.stat-box { margin-bottom: 20px; }
+.stat-label { font-size: 11px; color: #95a5a6; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; }
+.stat-value { font-size: 22px; color: #2c3e50; font-weight: 900; margin-top: 4px; display: flex; align-items: baseline; gap: 8px;}
+.stat-unit { font-size: 14px; color: #7f8c8d; font-weight: normal; }
+
+/* Barre de jauge (Nouveau) */
+.gauge-container { background: #ecf0f1; height: 8px; border-radius: 4px; margin-top: 8px; overflow: hidden; width: 100%; }
+.gauge-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease-in-out; }
+
+/* Boîte de recommandation (Rapport Lemonnier) */
+.reco-box { background: #f8f9fa; border-left: 4px solid #3498db; padding: 15px; border-radius: 0 6px 6px 0; margin-top: 25px; }
+.reco-title { font-size: 12px; font-weight: bold; color: #3498db; text-transform: uppercase; margin-bottom: 8px; }
+.reco-text { font-size: 13px; color: #34495e; line-height: 1.5; }
+
+/* Styles du SVG D3.js */
+.grid-line { fill: none; stroke: #ecf0f1; stroke-dasharray: 4,4; stroke-width: 1px; }
+.limit-line { fill: none; stroke: #ffffff; stroke-width: 3px; }
+.label-dark { font-size: 12px; fill: #2c3e50; font-weight: bold; pointer-events: none; }
+.fa-icon { font-family: "Font Awesome 6 Free"; font-weight: 900; pointer-events: none; }
+
+.tooltip { 
+    position: absolute; text-align: left; padding: 12px; font-size: 13px; 
+    background: rgba(255, 255, 255, 0.98); border: 1px solid #ecf0f1; border-radius: 8px; 
+    pointer-events: none; opacity: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+    transition: opacity 0.1s; z-index: 10; 
+}

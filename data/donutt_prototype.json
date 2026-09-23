@@ -1,0 +1,96 @@
+{
+  "etablissement": "UTT",
+  "annee": 2026,
+  "indicateurs": [
+    {
+      "id": "GES_01",
+      "dimension": "Changement climatique",
+      "type": "Ecologique",
+      "valeur_mesure": 1.4,
+      "unite": "tCO2eq/usager/an",
+      "seuil_reference": 0.4,
+      "niveau_risque": 5,
+      "ecart_relatif_pct": 250
+    },
+    {
+      "id": "SOL_01",
+      "dimension": "Usage des sols",
+      "type": "Ecologique",
+      "valeur_mesure": 54,
+      "unite": "% artificialisation",
+      "seuil_reference": 20,
+      "niveau_risque": 5,
+      "ecart_relatif_pct": 170
+    },
+    {
+      "id": "AIR_01",
+      "dimension": "Qualité de l'air",
+      "type": "Ecologique",
+      "valeur_mesure": 67,
+      "unite": "jours dégradés",
+      "seuil_reference": 0,
+      "niveau_risque": 5,
+      "ecart_relatif_pct": 100
+    },
+    {
+      "id": "BIO_01",
+      "dimension": "Perte de biodiversité",
+      "type": "Ecologique",
+      "valeur_mesure": 2.5,
+      "unite": "IBC / 5",
+      "seuil_reference": 3.0,
+      "niveau_risque": 3,
+      "ecart_relatif_pct": 16
+    },
+    {
+      "id": "EAU_01",
+      "dimension": "Eau douce",
+      "type": "Ecologique",
+      "valeur_mesure": 6000,
+      "unite": "m3/an",
+      "seuil_reference": 10000,
+      "niveau_risque": 1,
+      "ecart_relatif_pct": 0
+    },
+    {
+      "id": "SAN_01",
+      "dimension": "Santé humaine",
+      "type": "Social",
+      "valeur_mesure": 2.8,
+      "unite": "score / 5",
+      "seuil_reference": 3.0,
+      "niveau_risque": 3,
+      "ecart_relatif_pct": -7
+    },
+    {
+      "id": "COH_01",
+      "dimension": "Cohésion sociale",
+      "type": "Social",
+      "valeur_mesure": 3.3,
+      "unite": "score / 5",
+      "seuil_reference": 3.0,
+      "niveau_risque": 1,
+      "ecart_relatif_pct": 0
+    },
+    {
+      "id": "JUS_01",
+      "dimension": "Justice sociale",
+      "type": "Social",
+      "valeur_mesure": 3.2,
+      "unite": "score / 5",
+      "seuil_reference": 3.0,
+      "niveau_risque": 1,
+      "ecart_relatif_pct": 0
+    },
+    {
+      "id": "TRA_01",
+      "dimension": "Conditions de travail et d'études",
+      "type": "Social",
+      "valeur_mesure": 3.4,
+      "unite": "score / 5",
+      "seuil_reference": 3.0,
+      "niveau_risque": 1,
+      "ecart_relatif_pct": 0
+    }
+  ]
+}

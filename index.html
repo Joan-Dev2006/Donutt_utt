@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Donut UTT - Version Pro</title>
+    <!-- Chargement de D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Chargement de FontAwesome pour les icônes vectorielles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; text-align: center; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        
+        .main-title { color: #2c3e50; margin-bottom: 5px; font-weight: 800; }
+        .subtitle { color: #7f8c8d; font-size: 15px; margin-bottom: 30px; }
+
+        /* Structure globale du Dashboard */
+        .dashboard-container { 
+            display: flex; justify-content: center; align-items: flex-start; 
+            gap: 40px; max-width: 1300px; margin: 0 auto; 
+        }
+        
+        /* Conteneur Graphique */
+        #chart-container {
+            background: #ffffff; padding: 20px; border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+        #chart { position: relative; display: inline-block; }
+
+        /* Panneau latéral avancé */
+        #sidebar { 
+            width: 380px; background: #ffffff; border: none; border-radius: 12px; 
+            padding: 25px; text-align: left; box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+        .sidebar-title { font-size: 18px; color: #2c3e50; border-bottom: 3px solid #4CAF50; padding-bottom: 12px; margin-bottom: 25px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;}
+        .sidebar-placeholder { color: #95a5a6; font-size: 14px; font-style: italic; text-align: center; margin-top: 50px; }
+        
+        .stat-box { margin-bottom: 20px; }
+        .stat-label { font-size: 11px; color: #95a5a6; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; }
+        .stat-value { font-size: 22px; color: #2c3e50; font-weight: 900; margin-top: 4px; display: flex; align-items: baseline; gap: 8px;}
+        .stat-unit { font-size: 14px; color: #7f8c8d; font-weight: normal; }
+        
+        /* Barre de jauge (Nouveau) */
+        .gauge-container { background: #ecf0f1; height: 8px; border-radius: 4px; margin-top: 8px; overflow: hidden; width: 100%; }
+        .gauge-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease-in-out; }
+
+        /* Boîte de recommandation (Rapport Lemonnier) */
+        .reco-box { background: #f8f9fa; border-left: 4px solid #3498db; padding: 15px; border-radius: 0 6px 6px 0; margin-top: 25px; }
+        .reco-title { font-size: 12px; font-weight: bold; color: #3498db; text-transform: uppercase; margin-bottom: 8px; }
+        .reco-text { font-size: 13px; color: #34495e; line-height: 1.5; }
+
+        /* Styles du SVG D3.js */
+        .grid-line { fill: none; stroke: #ecf0f1; stroke-dasharray: 4,4; stroke-width: 1px; }
+        .limit-line { fill: none; stroke: #ffffff; stroke-width: 3px; } /* Lignes plus épaisses */
+        .label-dark { font-size: 12px; fill: #2c3e50; font-weight: bold; pointer-events: none; }
+        .fa-icon { font-family: "Font Awesome 6 Free"; font-weight: 900; pointer-events: none; }
+        
+        .tooltip { 
+            position: absolute; text-align: left; padding: 12px; font-size: 13px; 
+            background: rgba(255, 255, 255, 0.98); border: 1px solid #ecf0f1; border-radius: 8px; 
+            pointer-events: none; opacity: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            transition: opacity 0.1s; z-index: 10; 
+        }
+    </style>
+</head>
+<body>
+    <h2 class="main-title">DonUTT : Tableau de Bord Socio-Écologique</h2>
+    <p class="subtitle">Outil de pilotage stratégique de l'Université de Technologie de Troyes</p>
+    
+    <div class="dashboard-container">
+        
+        <div id="chart-container">
+            <div id="chart">
+                <div class="tooltip" id="tooltip"></div>
+            </div>
+        </div>
+
+        <div id="sidebar">
+            <div class="sidebar-title">Analyse de la limite</div>
+            <div id="sidebar-content">
+                <p class="sidebar-placeholder"><i class="fas fa-hand-pointer fa-2x" style="color:#bdc3c7; margin-bottom:15px; display:block;"></i>Cliquez sur un quartier ou une zone d'alerte pour afficher le diagnostic détaillé et les recommandations d'actions.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Dimensions ajustées pour laisser respirer le graphique
+        const width = 800;
+        const height = 800;
+        const center = width / 2;
+        
+        // Rayons réduits pour éviter que le rouge ne touche les bords
+        const rBlue = 90;         
+        const rSocialOuter = 160;  
+        const rEcoOuter = 230;     
+        const step = 20;           
+
+        const colBlue = "#b3e5fc";      
+        const colSocGreen = "#a5d6a7";  
+        const colEcoGreen = "#4caf50";  
+
+        // Dictionnaire des icônes FontAwesome (Unicode)
+        const iconMap = {
+            "GES_01": "\uf0c2", // fa-cloud
+            "SOL_01": "\uf1bb", // fa-tree
+            "AIR_01": "\uf72e", // fa-wind
+            "BIO_01": "\uf06c", // fa-leaf
+            "EAU_01": "\uf043", // fa-droplet
+            "SAN_01": "\uf067", // fa-plus (Santé)
+            "COH_01": "\uf2b5", // fa-handshake (Cohésion)
+            "JUS_01": "\uf24e", // fa-balance-scale (Justice)
+            "TRA_01": "\uf0b1"  // fa-briefcase (Travail)
+        };
+
+        // Dictionnaire des recommandations issues du rapport de M. Lemonnier
+        const recoMap = {
+            "GES_01": "Optimiser en priorité le bâtiment X (potentiel de -553 MWh/an) et encadrer les destinations de stages internationaux pour limiter l'aérien.",
+            "SOL_01": "Préserver les 6,2 hectares d'espaces verts actuels et désimperméabiliser les parkings (qui représentent 60% des sols artificialisés).",
+            "AIR_01": "Promouvoir les mobilités douces et augmenter le taux de covoiturage (actuellement à 1,4 pers/véhicule).",
+            "BIO_01": "Poursuivre l'inventaire écologique de 2026 et sanctuariser la forêt Miyawaki de 1 300 arbres.",
+            "EAU_01": "Maintenir la consommation soutenable (actuellement 6 000 m³) et auditer les fuites potentielles sur le réseau d'eau potable.",
+            "SAN_01": "Lancer un baromètre bien-être annuel (Action A8) et renforcer la communication sur les aides (ignorées par 75% des étudiants).",
+            "COH_01": "Créer une vitrine permanente DD&RS (Action M1) dans le couloir principal pour valoriser l'engagement collectif.",
+            "JUS_01": "Poursuivre le plan EDI et intégrer un module obligatoire 'DD&RS et conditions de travail' dans le tronc commun (Action M2).",
+            "TRA_01": "Améliorer les conditions de travail en nommant officiellement les référents vacants (achats responsables et déchets)."
+        };
+
+        const svg = d3.select("#chart").append("svg")
+            .attr("width", width).attr("height", height)
+            .append("g")
+            .attr("transform", `translate(${center}, ${center})`);
+
+        // Grille de fond
+        for(let i=1; i<=5; i++) {
+            svg.append("circle").attr("r", rEcoOuter + (step*i)).attr("class", "grid-line"); 
+            svg.append("circle").attr("r", Math.max(0, rBlue - (step*i))).attr("class", "grid-line"); 
+        }
+
+        svg.append("circle").attr("r", rBlue).attr("fill", colBlue).attr("stroke", "#ffffff").attr("stroke-width", "3px");
+
+        // Assure-toi que ton fichier s'appelle bien donutt_prototype.json et qu'il est dans le même dossier
+        d3.json("data/donutt_prototype.json").then(data => {
+            
+            const dataEco = data.indicateurs.filter(d => d.type === "Ecologique");
+            const dataSoc = data.indicateurs.filter(d => d.type === "Social");
+
+            const pie = d3.pie().value(1).sort(null).padAngle(0); 
+            const arcsEco = pie(dataEco);
+            const arcsSoc = pie(dataSoc);
+            
+            const colorScale = d3.scaleOrdinal()
+                .domain([1, 2, 3, 4, 5])
+                .range([colEcoGreen, "#ffcdd2", "#ef5350", "#d32f2f", "#d81b60"]); 
+
+            const tooltip = d3.select("#tooltip");
+
+            // 1. ANNEAUX DE BASE
+            svg.selectAll(".safe-soc").data(arcsSoc).join("path")
+                .attr("class", "safe-soc")
+                .attr("d", d3.arc().innerRadius(rBlue).outerRadius(rSocialOuter))
+                .attr("fill", colSocGreen).attr("stroke", "#ffffff").attr("stroke-width", "2px");
+
+            svg.selectAll(".safe-eco").data(arcsEco).join("path")
+                .attr("class", "safe-eco")
+                .attr("d", d3.arc().innerRadius(rSocialOuter).outerRadius(rEcoOuter))
+                .attr("fill", colEcoGreen).attr("stroke", "#ffffff").attr("stroke-width", "2px");
+
+            // 2. PÉTALES D'ALERTE
+            function drawPetals(arcs, isEco) {
+                svg.selectAll(isEco ? ".petal-eco" : ".petal-soc")
+                    .data(arcs).join("path")
+                    .attr("class", isEco ? "petal-eco" : "petal-soc")
+                    .attr("d", d => {
+                        const niveau = d.data.niveau_risque;
+                        if (niveau === 1) return ""; 
+                        return d3.arc()
+                            .innerRadius(isEco ? rEcoOuter : Math.max(0, rBlue - step * (niveau - 1)))
+                            .outerRadius(isEco ? rEcoOuter + step * (niveau - 1) : rBlue)
+                            .startAngle(d.startAngle).endAngle(d.endAngle)();
+                    })
+                    .attr("fill", d => colorScale(d.data.niveau_risque))
+                    .attr("stroke", "#ffffff").attr("stroke-width", "2px")
+                    .style("cursor", "pointer")
+                    // Interactions
+                    .on("mouseover", function(event, d) {
+                        d3.select(this).attr("stroke", "#1c2833").attr("stroke-width", "3px");
+                        tooltip.style("opacity", 1).html(`<strong style="color:#d81b60">${d.data.dimension}</strong><br/><b>Niveau :</b> ${d.data.niveau_risque}/5`);
+                    })
+                    .on("mousemove", function(event) {
+                        const chartPos = document.getElementById("chart").getBoundingClientRect();
+                        tooltip.style("left", (event.clientX - chartPos.left + 15) + "px").style("top", (event.clientY - chartPos.top + 15) + "px");
+                    })
+                    .on("mouseout", function() {
+                        d3.select(this).attr("stroke", "#ffffff").attr("stroke-width", "2px");
+                        tooltip.style("opacity", 0);
+                    })
+                    .on("click", function(event, d) {
+                        d3.selectAll(".petal-eco, .petal-soc").attr("stroke", "#ffffff").attr("stroke-width", "2px");
+                        d3.select(this).attr("stroke", "#1c2833").attr("stroke-width", "4px");
+                        
+                        // Calcul de la jauge (Visuel)
+                        let gaugePct = (d.data.niveau_risque / 5) * 100;
+                        let barColor = colorScale(d.data.niveau_risque);
+
+                        d3.select("#sidebar-content").html(`
+                            <div class="stat-box">
+                                <div class="stat-label">Dimension (${d.data.type})</div>
+                                <div class="stat-value"><i class="fas fa-icon" style="font-size:20px; margin-right:10px; color:${barColor};">${iconMap[d.data.id]}</i> ${d.data.dimension}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Valeur mesurée (UTT 2026)</div>
+                                <div class="stat-value">${d.data.valeur_mesure} <span class="stat-unit">${d.data.unite}</span></div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Cible de soutenabilité</div>
+                                <div class="stat-value" style="font-size:16px; color:#7f8c8d;">Objectif : ${d.data.seuil_reference} ${d.data.unite}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Niveau de risque (${d.data.niveau_risque}/5)</div>
+                                <div class="gauge-container">
+                                    <div class="gauge-fill" style="width: ${gaugePct}%; background-color: ${barColor};"></div>
+                                </div>
+                            </div>
+                            <div class="reco-box">
+                                <div class="reco-title"><i class="fas fa-lightbulb" style="margin-right:5px;"></i> Plan d'action recommandé</div>
+                                <div class="reco-text">${recoMap[d.data.id]}</div>
+                            </div>
+                        `);
+                    });
+            }
+
+            drawPetals(arcsEco, true);
+            drawPetals(arcsSoc, false);
+
+            // Frontières nettes
+            svg.append("circle").attr("r", rEcoOuter).attr("class", "limit-line");
+            svg.append("circle").attr("r", rSocialOuter).attr("class", "limit-line");
+            svg.append("circle").attr("r", rBlue).attr("class", "limit-line");
+
+            // 3. INTÉGRATION DES ICÔNES FONTAWESOME DANS LE DONUT
+            function drawIcons(arcs, radius, isEco) {
+                svg.selectAll(isEco ? ".icon-eco" : ".icon-soc").data(arcs).join("text")
+                    .attr("class", "fa-icon")
+                    .attr("transform", d => {
+                        const angle = (d.startAngle + d.endAngle) / 2;
+                        const x = Math.sin(angle) * radius;
+                        const y = -Math.cos(angle) * radius;
+                        // Légère rotation pour faire joli
+                        let rot = angle * 180 / Math.PI - 90;
+                        if (rot > 90 && rot < 270) rot += 180;
+                        return `translate(${x}, ${y}) rotate(${rot})`;
+                    })
+                    .attr("text-anchor", "middle")
+                    .attr("alignment-baseline", "middle")
+                    .style("fill", isEco ? "#ffffff" : "#2c3e50")
+                    .style("font-size", isEco ? "16px" : "14px")
+                    .style("opacity", "0.9")
+                    .text(d => iconMap[d.data.id]);
+            }
+
+            // Placement des icônes au centre des anneaux verts
+            drawIcons(arcsSoc, rBlue + ((rSocialOuter - rBlue) / 2), false);
+            drawIcons(arcsEco, rSocialOuter + ((rEcoOuter - rSocialOuter) / 2), true);
+
+            // Textes radiaux (Légèrement décalés pour laisser la place aux icônes)
+            function drawRadialText(arcs, radius, isSocial) {
+                if (!isSocial) return;
+                svg.selectAll(isSocial ? ".abbr-soc" : ".abbr-eco").data(arcs).join("text")
+                    .attr("transform", d => {
+                        const angle = (d.startAngle + d.endAngle) / 2;
+                        let rot = angle * 180 / Math.PI - 90;
+                        const isBottom = rot > 90 && rot < 270;
+                        const x = Math.sin(angle) * radius;
+                        const y = -Math.cos(angle) * radius;
+                        if (isBottom) rot += 180; 
+                        return `translate(${x}, ${y}) rotate(${rot})`;
+                    })
+                    .attr("text-anchor", d => {
+                        const angle = (d.startAngle + d.endAngle) / 2;
+                        const rot = angle * 180 / Math.PI - 90;
+                        const isBottom = rot > 90 && rot < 270;
+                        if (isSocial) return isBottom ? "start" : "end";
+                        else return isBottom ? "end" : "start";
+                    })
+                    .attr("alignment-baseline", "middle")
+                    .style("font-size", "11px")
+                    .style("font-weight", "bold")
+                    .style("fill", isSocial ? "#2c3e50" : "#ffffff")
+                    .text(d => isSocial ? d.data.dimension.substring(0, 2).toUpperCase() : d.data.dimension);
+            }
+
+            drawRadialText(arcsSoc, rBlue - 6, true);
+            drawRadialText(arcsEco, rSocialOuter + 8, false);
+
+            // 4. LÉGENDE
+            const legendGroup = svg.append("g").attr("transform", `translate(${width / 2 - 240}, ${height / 2 - 130})`);
+            const legendItems = [
+                { color: "#d81b60", label: "Niveau 5 : Risque Critique" },
+                { color: "#d32f2f", label: "Niveau 4 : Risque Élevé" },
+                { color: "#ef5350", label: "Niveau 3 : Risque Modéré" },
+                { color: "#ffcdd2", label: "Niveau 2 : Proche de la cible" },
+                { color: "#4CAF50", label: "Niveau 1 : Espace Sûr" }
+            ];
+            legendGroup.append("text").attr("x", 0).attr("y", -15).attr("class", "label-dark").text("Échelle de risque :");
+            legendItems.forEach((item, index) => {
+                legendGroup.append("rect").attr("x", 0).attr("y", index * 22).attr("width", 14).attr("height", 14).attr("fill", item.color).attr("rx", 3);
+                legendGroup.append("text").attr("x", 24).attr("y", index * 22 + 11).attr("class", "label-dark").style("font-weight", "normal").text(item.label);
+            });
+        });
+    </script>
+</body>
+</html>
