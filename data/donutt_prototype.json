@@ -1,96 +1,66 @@
 {
-  "etablissement": "UTT",
-  "annee": 2026,
   "indicateurs": [
-    {
-      "id": "GES_01",
-      "dimension": "Changement climatique",
-      "type": "Ecologique",
-      "valeur_mesure": 1.4,
-      "unite": "tCO2eq/usager/an",
-      "seuil_reference": 0.4,
-      "niveau_risque": 5,
-      "ecart_relatif_pct": 250
+    { 
+        "id": "GES_01", "dimension": "Changement Climatique", "type": "Ecologique",
+        "description": "Les émissions de gaz à effet de serre (GES) contribuent au réchauffement global de la planète, perturbant les équilibres climatiques.",
+        "source_donnees": "Bilan Carbone de l'UTT - 2023",
+        "indicateur_desc": "Émission moyenne de CO2 par usager (tCO2e/an)",
+        "valeur_mesure": 1.2, "seuil_reference": "0.4", "unite": "tCO2e/an/usager", "niveau_risque": 5 
     },
-    {
-      "id": "SOL_01",
-      "dimension": "Usage des sols",
-      "type": "Ecologique",
-      "valeur_mesure": 54,
-      "unite": "% artificialisation",
-      "seuil_reference": 20,
-      "niveau_risque": 5,
-      "ecart_relatif_pct": 170
+    { 
+        "id": "BIO_01", "dimension": "Perte de biodiversité", "type": "Ecologique",
+        "description": "La biodiversité diminue avec la pression humaine. Elle assure la stabilité des cycles écologiques et la résilience des milieux.",
+        "source_donnees": "Inventaire de la biodiversité du campus de l'UTT - 2022",
+        "indicateur_desc": "Indice de biodiversité du campus (IBC) :\n- la richesse spécifique\n- l'abondance relative\n- l'intégrité des habitats",
+        "valeur_mesure": 2.5, "seuil_reference": "3", "unite": "/5", "niveau_risque": 4 
     },
-    {
-      "id": "AIR_01",
-      "dimension": "Qualité de l'air",
-      "type": "Ecologique",
-      "valeur_mesure": 67,
-      "unite": "jours dégradés",
-      "seuil_reference": 0,
-      "niveau_risque": 5,
-      "ecart_relatif_pct": 100
+    { 
+        "id": "AIR_01", "dimension": "Qualité de l'air", "type": "Ecologique",
+        "description": "La pollution atmosphérique a des impacts directs sur la santé respiratoire et les écosystèmes locaux.",
+        "source_donnees": "Capteurs Atmo Grand Est - Troyes 2024",
+        "indicateur_desc": "Nombre de jours de dépassement du seuil de particules fines (PM10)",
+        "valeur_mesure": 12, "seuil_reference": "5", "unite": "jours/an", "niveau_risque": 4 
     },
-    {
-      "id": "BIO_01",
-      "dimension": "Perte de biodiversité",
-      "type": "Ecologique",
-      "valeur_mesure": 2.5,
-      "unite": "IBC / 5",
-      "seuil_reference": 3.0,
-      "niveau_risque": 3,
-      "ecart_relatif_pct": 16
+    { 
+        "id": "SOL_01", "dimension": "Usage des sols", "type": "Ecologique",
+        "description": "L'artificialisation des sols détruit les habitats naturels et limite la capacité d'absorption des eaux de pluie.",
+        "source_donnees": "Plan Local d'Urbanisme (PLUi) - 2023",
+        "indicateur_desc": "Taux d'imperméabilisation des surfaces du campus",
+        "valeur_mesure": 68, "seuil_reference": "40", "unite": "%", "niveau_risque": 5 
     },
-    {
-      "id": "EAU_01",
-      "dimension": "Eau douce",
-      "type": "Ecologique",
-      "valeur_mesure": 6000,
-      "unite": "m3/an",
-      "seuil_reference": 10000,
-      "niveau_risque": 1,
-      "ecart_relatif_pct": 0
+    { 
+        "id": "EAU_01", "dimension": "Eau douce", "type": "Ecologique",
+        "description": "La ressource en eau douce est limitée. Une surconsommation menace les nappes phréatiques locales.",
+        "source_donnees": "Facturation annuelle UTT - 2024",
+        "indicateur_desc": "Consommation annuelle d'eau potable par usager",
+        "valeur_mesure": 12.5, "seuil_reference": "15", "unite": "m3/usager", "niveau_risque": 1 
     },
-    {
-      "id": "SAN_01",
-      "dimension": "Santé humaine",
-      "type": "Social",
-      "valeur_mesure": 2.8,
-      "unite": "score / 5",
-      "seuil_reference": 3.0,
-      "niveau_risque": 3,
-      "ecart_relatif_pct": -7
+    { 
+        "id": "SAN_01", "dimension": "Santé Humaine", "type": "Social",
+        "description": "Le bien-être physique et mental des étudiants et du personnel est le socle d'un environnement d'étude sain.",
+        "source_donnees": "Enquête Qualité de Vie et Conditions de Travail (QVCT) - 2025",
+        "indicateur_desc": "Indice de perception de la santé globale sur le campus",
+        "valeur_mesure": 3.2, "seuil_reference": "4", "unite": "/5", "niveau_risque": 2 
     },
-    {
-      "id": "COH_01",
-      "dimension": "Cohésion sociale",
-      "type": "Social",
-      "valeur_mesure": 3.3,
-      "unite": "score / 5",
-      "seuil_reference": 3.0,
-      "niveau_risque": 1,
-      "ecart_relatif_pct": 0
+    { 
+        "id": "COH_01", "dimension": "Cohésion Sociale", "type": "Social",
+        "description": "La force des liens sociaux, l'inclusivité et le sentiment d'appartenance à la communauté universitaire.",
+        "source_donnees": "Enquête QVCT et données BDE - 2025",
+        "indicateur_desc": "Taux de participation à la vie associative et perception d'isolement",
+        "valeur_mesure": 4.1, "seuil_reference": "3.5", "unite": "/5", "niveau_risque": 1 
     },
-    {
-      "id": "JUS_01",
-      "dimension": "Justice sociale",
-      "type": "Social",
-      "valeur_mesure": 3.2,
-      "unite": "score / 5",
-      "seuil_reference": 3.0,
-      "niveau_risque": 1,
-      "ecart_relatif_pct": 0
+    { 
+        "id": "JUS_01", "dimension": "Justice Sociale", "type": "Social",
+        "description": "L'équité de traitement, l'accessibilité et la lutte contre toute forme de discrimination.",
+        "source_donnees": "Rapport Égalité Homme-Femme UTT - 2024",
+        "indicateur_desc": "Indicateur composite d'équité (genre, handicap, origine sociale)",
+        "valeur_mesure": 2.8, "seuil_reference": "4", "unite": "/5", "niveau_risque": 4 
     },
-    {
-      "id": "TRA_01",
-      "dimension": "Conditions de travail et d'études",
-      "type": "Social",
-      "valeur_mesure": 3.4,
-      "unite": "score / 5",
-      "seuil_reference": 3.0,
-      "niveau_risque": 1,
-      "ecart_relatif_pct": 0
-    }
+    { 
+        "id": "TRA_01", "dimension": "Travail & Études", "type": "Social",
+        "description": "La qualité des infrastructures, l'équilibre charge de travail/vie privée et les perspectives professionnelles.",
+        "source_donnees": "Enquête d'insertion professionnelle - 2024",
+        "indicateur_desc": "Indice de satisfaction des conditions d'études et de travail",
+        "valeur_mesure": 3.9, "seuil_reference": "3.5", "unite": "/5", "niveau_risque": 1 }
   ]
 }
