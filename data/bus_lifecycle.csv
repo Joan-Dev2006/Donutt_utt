@@ -1,0 +1,6 @@
+composant;phase;pays;per_eq
+Chassis_Bus;Fabrication;CHINA;200
+Moteur_Thermique;Fabrication;GERMANY;150
+Habitacle;Fabrication;FRANCE;50
+Systeme_Bus_Complet;Utilisation;FRANCE;800
+Chassis_Bus;Fin de vie;FRANCE;40

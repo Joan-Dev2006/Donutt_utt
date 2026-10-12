@@ -1,0 +1,6 @@
+composant;phase;pays;per_eq
+Bloc_Moteur;Fabrication;GERMANY;50
+Bloc_Batterie;Fabrication;CHINA;150
+Chassis_Aluminium;Fabrication;FRANCE;20
+Systeme_Complet;Utilisation;UTT_CAMPUS;500
+Bloc_Batterie;Fin de vie;CHINA;30
