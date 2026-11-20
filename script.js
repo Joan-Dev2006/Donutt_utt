@@ -21,13 +21,13 @@ const UNITES = {
     "Material Footprint": "tonnes"
 };
 
-let systemeA = null;
-let systemeB = null;
+// Stockage dynamique de 1 à N systèmes
+const systemes = {};
+let compteurScenarios = 0;
 
 // Moteur d'Analyse (Traduction mathématique de l'article)
 function analyserCycleDeVie(dataCSV, systemName) {
     
-    // Vérification de sécurité : la base est-elle bien chargée par le HTML ?
     if (typeof BASE_REFERENCE === 'undefined') {
         alert("Erreur critique : La base de données de référence est introuvable. Avez-vous bien inclus base_reference.js dans index.html ?");
         return null;
@@ -82,50 +82,103 @@ function analyserCycleDeVie(dataCSV, systemName) {
     return systeme;
 }
 
-// Fonction appelée par le bouton d'importation HTML
-function chargerFichierCSV(file, cible) {
+// =========================================================================
+// 2. GESTION DYNAMIQUE DES SCÉNARIOS (1 à N Doughnuts)
+// =========================================================================
+
+function creerModeleVide() {
+    let modeleVide = { plafondEcologique: [], plancherSocial: [] };
+    for (let i = 0; i < 7; i++) {
+        modeleVide.plafondEcologique.push({ dimension: "Waiting...", type: "Ecologique", ratio: 0, valeur_mesure: 0, seuil_reference: 0 });
+    }
+    for (let i = 0; i < 11; i++) {
+        modeleVide.plancherSocial.push({ dimension: "Waiting...", type: "Social", ratio: 0, valeur_mesure: 0, seuil_reference: 0 });
+    }
+    return modeleVide;
+}
+
+function ajouterScenario() {
+    compteurScenarios++;
+    const scenarioId = `scenario-${compteurScenarios}`;
+    const container = document.getElementById("comparison-layout");
+
+    // Création de la colonne du système
+    const col = document.createElement("div");
+    col.className = "system-column";
+    col.id = `col-${scenarioId}`;
+
+    col.innerHTML = `
+        <div class="import-box">
+            <button class="btn-remove" title="Remove this system" onclick="supprimerScenario('${scenarioId}')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="nom-systeme-${scenarioId}">Socio-Technical System ${compteurScenarios}</h3>
+            <input type="file" id="upload-${scenarioId}" accept=".csv">
+        </div>
+        <div id="chart-${scenarioId}" class="chart-wrapper"></div>
+    `;
+
+    container.appendChild(col);
+
+    // Écouteur sur l'input file
+    const fileInput = document.getElementById(`upload-${scenarioId}`);
+    fileInput.addEventListener("change", function () {
+        chargerFichierCSV(this.files[0], scenarioId);
+    });
+
+    // Dessin initial du Doughnut vide
+    dessinerDonut(creerModeleVide(), `#chart-${scenarioId}`);
+    mettreAJourBoutonsSuppression();
+}
+
+function supprimerScenario(scenarioId) {
+    const col = document.getElementById(`col-${scenarioId}`);
+    if (col) col.remove();
+    delete systemes[scenarioId];
+    mettreAJourBoutonsSuppression();
+}
+
+// Masque le bouton "×" s'il ne reste qu'un seul Doughnut affiché
+function mettreAJourBoutonsSuppression() {
+    const boutons = document.querySelectorAll(".btn-remove");
+    const afficher = boutons.length > 1;
+    boutons.forEach(btn => {
+        btn.style.display = afficher ? "flex" : "none";
+    });
+}
+
+// Fonction appelée lors de l'importation d'un CSV
+function chargerFichierCSV(file, scenarioId) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
         const contenu = e.target.result;
         let data = d3.csvParse(contenu);
-        if(data.length === 0 || !data[0].pays) data = d3.dsvFormat(";").parse(contenu); 
+        if (data.length === 0 || !data[0].pays) data = d3.dsvFormat(";").parse(contenu); 
 
-        // Vérification du format d'export SysML 
         if (data.length === 0 || !data[0].pays || !data[0].per_eq || !data[0].composant) {
             alert("Format incorrect. Importez un export SysML valide avec les colonnes : composant, phase, pays, per_eq");
             return;
         }
 
-        // Lancement du moteur de calcul
-        let systemeCalcule = analyserCycleDeVie(data, file.name.replace(".csv", ""));
-        
-        if (!systemeCalcule) return; // Arrêt si erreur dans le calcul
+        let systemeCalcule = analyserCycleDeVie(data, file.name.replace(/\.csv$/i, ""));
+        if (!systemeCalcule) return;
 
-        if(cible === 'A') systemeA = systemeCalcule;
-        if(cible === 'B') systemeB = systemeCalcule;
+        systemes[scenarioId] = systemeCalcule;
         
-        document.getElementById("nom-systeme-" + cible).innerText = systemeCalcule.nom.toUpperCase();
-        dessinerDonut(systemeCalcule.modeleRaworth, "#chart-" + cible);
+        document.getElementById(`nom-systeme-${scenarioId}`).innerText = systemeCalcule.nom.toUpperCase();
+        dessinerDonut(systemeCalcule.modeleRaworth, `#chart-${scenarioId}`);
     };
     reader.readAsText(file);
 }
 
-// =========================================================================
-// 2. INITIALISATION AU DÉMARRAGE
-// =========================================================================
-
+// Initialisation : 1 seul Doughnut par défaut au chargement
 window.onload = function() {
-    let modeleVide = { plafondEcologique: [], plancherSocial: [] };
-    for(let i=0; i<7; i++) modeleVide.plafondEcologique.push({dimension: "Waiting...", type: "Ecologique", ratio: 0, valeur_mesure: 0, seuil_reference: 0});
-    for(let i=0; i<11; i++) modeleVide.plancherSocial.push({dimension: "Waiting...", type: "Social", ratio: 0, valeur_mesure: 0, seuil_reference: 0});
-    
-    dessinerDonut(modeleVide, "#chart-A");
-    dessinerDonut(modeleVide, "#chart-B");
+    ajouterScenario();
 };
 
 // =========================================================================
-// 3. MOTEUR DE DESSIN D3.JS (Couleurs Dynamiques, Textes Originaux et Unités)
+// 3. MOTEUR DE DESSIN D3.JS (Responsive via viewBox + IDs isolés)
 // =========================================================================
 
 function dessinerDonut(donneesModele, selecteurDiv) {
@@ -146,8 +199,10 @@ function dessinerDonut(donneesModele, selecteurDiv) {
     const colLightBg = "#f4fbfe";   
     const colScale = "rgba(30, 55, 90, 0.25)";      
 
+    // SVG responsive grâce à viewBox
     const svg = d3.select(selecteurDiv).append("svg")
-        .attr("width", width).attr("height", height)
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("preserveAspectRatio", "xMidYMid meet")
         .append("g").attr("transform", `translate(${center}, ${center})`);
 
     const defs = svg.append("defs");
@@ -314,7 +369,10 @@ function dessinerDonut(donneesModele, selecteurDiv) {
         .on("mouseover", function(event, d) {
             d3.select(this).attr("fill", "rgba(0,0,0,0.05)");
             
-            let etat = d.data.ratio > 1 ? "⚠️ OVERSHOOT" : "✅ SAFE";
+            let isEco = d.data.type === "Ecologique";
+            let etat = d.data.ratio > 1
+                ? (isEco ? "⚠️ OVERSHOOT" : "⚠️ SHORTFALL")
+                : (isEco ? "✅ SAFE" : "✅ ACHIEVED");
             let couleurEtat = d.data.ratio > 1 ? "#ffcc00" : "#00ff00";
             
             tooltip.style("opacity", 1).html(`
@@ -335,15 +393,11 @@ function dessinerDonut(donneesModele, selecteurDiv) {
             
             let isEco = d.data.type === "Ecologique";
             let ratio = d.data.ratio;
-
-            // NOUVEAU : Récupération de l'unité
             let unite = isEco ? (UNITES[d.data.dimension] || "") : "";
 
-            // 1. Textes de base (En anglais avec unités HTML injectées)
             document.getElementById('m-title').innerHTML = d.data.dimension;
             document.getElementById('m-unite').innerHTML = isEco ? "Total Impact" : "Weighted Social Score";
             
-            // Affichage avec l'unité stylisée
             document.getElementById('m-valeur-mesure').innerHTML = d.data.valeur_mesure.toLocaleString('fr-FR', {maximumFractionDigits: 2}) + 
                 `<span style="font-size: 20px; color: #829ab1; margin-left: 8px; font-weight: normal;">${unite}</span>`;
             
@@ -352,7 +406,6 @@ function dessinerDonut(donneesModele, selecteurDiv) {
             
             document.getElementById('m-ratio-affiche').innerHTML = ratio.toLocaleString('fr-FR', {maximumFractionDigits: 2});
 
-            // 2. Gestion des statuts et explications (En anglais)
             if (isEco) {
                 if (ratio > 1) {
                     document.getElementById('m-status-text').innerHTML = "⚠️ OVERSHOOT";
@@ -364,7 +417,7 @@ function dessinerDonut(donneesModele, selecteurDiv) {
                     document.getElementById('m-status-text').style.color = "white";
                     document.getElementById('m-explication').innerHTML = `The impact of this system perfectly respects the authorized ecological ceiling.`;
                 }
-            } else { // Social
+            } else {
                 if (ratio > 1) {
                     document.getElementById('m-status-text').innerHTML = "⚠️ SHORTFALL";
                     document.getElementById('m-status-text').style.color = "#ffcccc";
@@ -376,29 +429,21 @@ function dessinerDonut(donneesModele, selecteurDiv) {
                 }
             }
 
-            // 3. Animation de la Jauge
-            let positionJauge = 50; 
-            
+            let positionJauge = 50;
             if (isEco) {
                 document.getElementById('m-jauge-gauche').innerHTML = "Safe (0)";
                 document.getElementById('m-jauge-centre').innerHTML = "Boundary (1)";
                 document.getElementById('m-jauge-droite').innerHTML = "Overshoot (>1)";
-                
-                if (ratio > 1) {
-                    positionJauge = Math.min(100, 50 + ((ratio - 1) * 25)); 
-                } else {
-                    positionJauge = Math.max(0, ratio * 50); 
-                }
             } else {
                 document.getElementById('m-jauge-gauche').innerHTML = "Achieved (0)";
                 document.getElementById('m-jauge-centre').innerHTML = "Foundation (1)";
                 document.getElementById('m-jauge-droite').innerHTML = "Shortfall (>1)";
-                
-                if (ratio > 1) {
-                    positionJauge = Math.min(100, 50 + ((ratio - 1) * 25)); 
-                } else {
-                    positionJauge = Math.max(0, ratio * 50); 
-                }
+            }
+
+            if (ratio > 1) {
+                positionJauge = Math.min(100, 50 + ((ratio - 1) * 25)); 
+            } else {
+                positionJauge = Math.max(0, ratio * 50); 
             }
 
             document.getElementById('m-jauge-curseur').style.left = `${positionJauge}%`;
